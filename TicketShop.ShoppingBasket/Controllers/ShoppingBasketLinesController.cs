@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using TicketShop.ShoppingBasket.Dtos;
+using TicketShop.ShoppingBasket.Services;
+using TicketShop.ShoppingBasket.Settings;
 
 namespace TicketShop.ShoppingBasket;
 
@@ -8,6 +11,13 @@ namespace TicketShop.ShoppingBasket;
 [Route("[controller]")]
 public class ShoppingBasketLinesController : ControllerBase
 {
+    private readonly IServiceRegistry _serviceRegistry;
+    private readonly ApplicationSettings _applicationSettings;
+    public ShoppingBasketLinesController(IServiceRegistry serviceRegistry, IOptions<ApplicationSettings> appSettings)
+    {
+        _serviceRegistry = serviceRegistry;
+        _applicationSettings = appSettings.Value;
+    }
     [HttpGet("/ShoppingBaskets/{basketId}/BasketLines")]
     public IActionResult Get(Guid basketId)
     {
@@ -35,8 +45,9 @@ public class ShoppingBasketLinesController : ControllerBase
         {
             using (var httpClient = new HttpClient())
             {
+                var eventCatalogUrl = await this._serviceRegistry.GetService(_applicationSettings.EventCatalogServiceId);
                 var response = await httpClient
-                    .GetStringAsync($"http://localhost:5069/events/{basketLineToCreate.EventId}");
+                    .GetStringAsync($"{eventCatalogUrl.Origin}/events/{basketLineToCreate.EventId}");
                 eventData = JsonConvert.DeserializeObject<EventDataTransferObject>(response);
                 Database.Events.Add(eventData);
             } 
