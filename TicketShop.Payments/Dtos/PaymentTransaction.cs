@@ -1,4 +1,4 @@
-namespace TicketShop.Gateway.Dtos;
+namespace TicketShop.Payments.Dtos;
 
 public class PaymentTransaction
 {

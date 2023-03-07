@@ -12,11 +12,9 @@ namespace TicketShop.Gateway.Controllers;
 public class ShoppingBasketsController : ControllerBase
 {
     private readonly IShoppingBasketService _shoppingBasketService;
-    private readonly List<PaymentTransaction> _paymentTransactions;
     public ShoppingBasketsController(IShoppingBasketService shoppingBasketService)
     {
         _shoppingBasketService = shoppingBasketService;
-        _paymentTransactions = new List<PaymentTransaction>();
     }
     
     [HttpPost]
@@ -44,6 +42,14 @@ public class ShoppingBasketsController : ControllerBase
             PaymentMethod = paymentMethodInformation,
         };
 
+        Database.PaymentTransactions.Add(new PaymentTransaction
+        {
+            Id = Guid.NewGuid(),
+            Status = Status.InProgress,
+            Errors = new List<string>()
+        });
+        
+        paymentInformation.PaymentTransaction = Database.PaymentTransactions.Last();
         try
         {
             var json = JsonConvert.SerializeObject(paymentInformation);
@@ -63,11 +69,8 @@ public class ShoppingBasketsController : ControllerBase
                 }
             }
 
-            _paymentTransactions.Add(new PaymentTransaction
-            {
-                Id = Guid.NewGuid()
-            });
-            return Ok(_paymentTransactions.Last().Id);
+           
+            return Ok(Database.PaymentTransactions.Last().Id);
         }
         catch (Exception e)
         {
@@ -75,9 +78,9 @@ public class ShoppingBasketsController : ControllerBase
         }
     }
 
-    [HttpGet("payments/{transactionId}")]
+    [HttpGet("/payments/{transactionId}")]
     public ActionResult<PaymentTransaction> GetTransaction(Guid transactionId)
     {
-        return Ok(_paymentTransactions.SingleOrDefault(x => x.Id == transactionId));
+        return Ok(Database.PaymentTransactions.SingleOrDefault(x => x.Id == transactionId));
     }
 }

@@ -7,4 +7,6 @@ public class PaymentInformationDataTransferObject
     public decimal Total { get; set; }
 
     public Guid BasketId { get; set; }
+
+    public PaymentTransaction PaymentTransaction { get; set; }
 }
